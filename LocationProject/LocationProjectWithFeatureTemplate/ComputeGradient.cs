@@ -24,7 +24,22 @@ namespace LocationProjectWithFeatureTemplate
             _tagList = tagList;
             _lambda = lambda;
             forwardBackwordAlgos = new List<ForwardBackwordAlgo>();
-            _weightVector = new WeightVector();
+            _weightVector = null;
+        }
+
+        public void Dump(string outputFile, Dictionary<int, string> dictKtoFeature)
+        {
+            Console.WriteLine(DateTime.Now+" training is complete");
+            var output = new WriteModel(outputFile);
+            var sortedDictionary = from pair in _weightVector.WDictionary
+                orderby Math.Abs(pair.Value) descending
+                select pair;
+            foreach (var weight in sortedDictionary)
+            {
+                output.WriteLine(string.Format("{0} {1} {2}", weight.Key,
+                    dictKtoFeature[weight.Key], weight.Value));
+            }
+            output.Flush();
         }
 
         private void SetForwardBackwordAlgo(WeightVector weightVector)
@@ -38,6 +53,10 @@ namespace LocationProjectWithFeatureTemplate
             foreach (var sentence in _inputSentence)
             {
                 var outputTags = _outputTagsList[counter];
+                if (sentence.Count != outputTags.Count)
+                {
+                    throw new Exception("counts dont match " + sentence.Count + "with " + outputTags.Count);
+                }
                 forwardBackwordAlgos.Add(new ForwardBackwordAlgo(sentence, weightVector, outputTags));
                 counter++;
             }
@@ -47,10 +66,16 @@ namespace LocationProjectWithFeatureTemplate
         {
             for (int iter = 0; iter < iterationCount; iter++)
             {
+                Console.WriteLine(DateTime.Now + " running iteration " + iter);
                 var newWeightVector = new WeightVector(weightVector.FeatureKDictionary);
                 SetForwardBackwordAlgo(weightVector);
-                for (var k = 0; k < weightVector.FeatureKDictionary.Count; k++)
+                //for (var k = 0; k < weightVector.FeatureKDictionary.Count; k++)
+                for (var k = weightVector.FeatureKDictionary.Count-1; k >= 0; k--)
                 {
+                    if (k%100 == 0)
+                    {
+                        Console.WriteLine(DateTime.Now + " running iteration for k " + k);
+                    }
                     var wk = Compute(k, weightVector);
                     wk = weightVector.Get(k) + _lambda*wk;
                     newWeightVector.SetKey(k, wk);
@@ -61,19 +86,7 @@ namespace LocationProjectWithFeatureTemplate
             return weightVector;
         }
 
-        public void Dump(string outputFile, Dictionary<int, string> dictKtoFeature)
-        {
-            Console.WriteLine("training is complete");
-            var output = new WriteModel(outputFile);
-            foreach (var weight in _weightVector.WDictionary)
-            {
-                output.WriteLine(string.Format("{0} {1} {2}", weight.Key,
-                    dictKtoFeature[weight.Key], weight.Value));
-            }
-            output.Flush();
-        }
-
-        public double Compute(int k, WeightVector weightVector)
+        private double Compute(int k, WeightVector weightVector)
         {
             double output = 0;
             double secondTerm = 0;
@@ -90,20 +103,28 @@ namespace LocationProjectWithFeatureTemplate
             foreach (var sentence in _inputSentence)
             {
                 var outputTags = _outputTagsList[i];
-                output += weightedFeaturesum.GetAllFeatureK(outputTags, k, sentence);
 
-                // second term.
-                for (var j = 0; j < outputTags.Count; j++)
+                if (sentence.Count != outputTags.Count)
                 {
-                    double sum = 0;
-                    foreach (var ngramTag in ngramTags.GetNGramTags(2))
-                    {
-                        string[] split = ngramTag.Split(new[] {':'});
-                        sum += (forwardBackwordAlgos[i].GetQ(j, split[0], split[1]) *
-                            weightedFeaturesum.GetFeatureK(split[0], split[1], j, k, sentence));
-                    }
-                    secondTerm += sum;
+                    throw new Exception("compute counts dont match " + sentence.Count + "with " + outputTags.Count);
                 }
+
+                output += CalculateGradient(weightedFeaturesum, sentence, outputTags, k, ngramTags, i);
+
+                //output += weightedFeaturesum.GetAllFeatureK(outputTags, k, sentence);
+
+                //// second term.
+                //for (var j = 0; j < outputTags.Count; j++)
+                //{
+                //    double sum = 0;
+                //    foreach (var ngramTag in ngramTags.GetNGramTags(2))
+                //    {
+                //        string[] split = ngramTag.Split(new[] {':'});
+                //        sum += (forwardBackwordAlgos[i].GetQ(j, split[0], split[1]) *
+                //            weightedFeaturesum.GetFeatureK(split[0], split[1], j, k, sentence));
+                //    }
+                //    secondTerm += sum;
+                //}
                 i++;
             }
 
@@ -111,6 +132,42 @@ namespace LocationProjectWithFeatureTemplate
             return output;
         }
 
+        private double CalculateGradient(WeightedFeatureSum weightedFeatureSum,
+            List<string> sentence, List<string> outputTags,
+            int k, Tags ngramTags, int i)
+        {
+            double output = 0;
+            double secondTerm = 0;
+            output += weightedFeatureSum.GetAllFeatureK(outputTags, k, sentence);
+
+            // second term.
+            for (var j = 0; j < outputTags.Count; j++)
+            {
+                //double sum = 0;
+                secondTerm += GetSecondTerm(sentence, ngramTags, weightedFeatureSum, i, j, k);
+                //foreach (var ngramTag in ngramTags.GetNGramTags(2))
+                //{
+                //    string[] split = ngramTag.Split(new[] { ':' });
+                //    sum += (forwardBackwordAlgos[i].GetQ(j, split[0], split[1]) *
+                //        weightedFeatureSum.GetFeatureK(split[0], split[1], j, k, sentence));
+                //}
+                //secondTerm += sum;
+            }
+            return output - secondTerm;
+        }
+
+        private double GetSecondTerm(List<string> sentence, Tags ngramTags, 
+            WeightedFeatureSum weightedFeatureSum, int i, int j, int k)
+        {
+            double sum = 0;
+            foreach (var ngramTag in ngramTags.GetNGramTags(2))
+            {
+                string[] split = ngramTag.Split(new[] { ':' });
+                sum += (forwardBackwordAlgos[i].GetQ(j, split[0], split[1]) *
+                    weightedFeatureSum.GetFeatureK(split[0], split[1], j, k, sentence));
+            }
+            return sum;
+        }
     }
 }
 

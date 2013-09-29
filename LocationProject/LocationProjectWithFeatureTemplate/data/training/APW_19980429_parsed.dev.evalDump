@@ -1,4 +1,4 @@
-found: 28 expected: 30 correct: 21
+found: 12 expected: 30 correct: 9
 
 precision	 recall 	 f1score	
-0.75	0.7	0.7241379
+0.75	0.3	0.4285714

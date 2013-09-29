@@ -5,13 +5,14 @@ namespace LocationProjectWithFeatureTemplate
 {
     class WeightVector
     {
-        public readonly Dictionary<int, double> WDictionary;
+        public Dictionary<int, double> WDictionary;
         public Dictionary<string, int> FeatureKDictionary;
 
         public WeightVector()
         {
             WDictionary = new Dictionary<int, double>();
             FeatureKDictionary = new Dictionary<string, int>();
+            
             throw new Exception("did you forget ???");
         }
 
@@ -26,26 +27,52 @@ namespace LocationProjectWithFeatureTemplate
             if (FeatureKDictionary.ContainsKey(input.Key))
             {
                 var k = FeatureKDictionary[input.Key];
-                WDictionary.Add(k, float.Parse(input.Value));
+                WDictionary.Add(k, double.Parse(input.Value));
             }
         }
 
         public int GetFeatureToK(string feature)
         {
-            return FeatureKDictionary.ContainsKey(feature) ? FeatureKDictionary[feature] : -1;
+            try
+            {
+                return FeatureKDictionary[feature];
+            }
+            catch (Exception)
+            {
+                return -1;
+            }
+            
+            //return FeatureKDictionary.ContainsKey(feature) ? FeatureKDictionary[feature] : -1;
         }
 
         public double Get(string tag)
         {
-            return FeatureKDictionary.ContainsKey(tag) ? Get(FeatureKDictionary[tag]) : 0;
+            try
+            {
+                return Get(FeatureKDictionary[tag]);
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
+            //return FeatureKDictionary.ContainsKey(tag) ? Get(FeatureKDictionary[tag]) : 0;
         }
 
         public double Get(int k)
         {
-            return WDictionary.ContainsKey(k) ? WDictionary[k] : 0;
+            try
+            {
+                return WDictionary[k];
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
+            //return (WDictionary.ContainsKey(k) && !Double.IsNaN(WDictionary[k])) ? WDictionary[k] : 0;
+            //return (WDictionary.ContainsKey(k)) ? WDictionary[k] : 0;
         }
 
-        public void AddToKey(string key, float value)
+        public void AddToKey(string key, double value)
         {
             if (FeatureKDictionary.ContainsKey(key))
             {
@@ -53,7 +80,7 @@ namespace LocationProjectWithFeatureTemplate
             }
         }
 
-        public void AddToKey(int key, float value)
+        public void AddToKey(int key, double value)
         {
             if (!WDictionary.ContainsKey(key))
             {

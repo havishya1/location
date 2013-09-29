@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace LocationProjectWithFeatureTemplate
 {
@@ -26,6 +27,31 @@ namespace LocationProjectWithFeatureTemplate
             _tags = new Tags(tagList);
         }
 
+        public void ReMappingFromWeightVector(WeightVector weightVector)
+        {
+            var newDictKtoF = new Dictionary<int, string>();
+            var newDictFtoK = new Dictionary<string, int>();
+            var weightDict = new Dictionary<int, double>();
+            int k = 0;
+
+            var sortedDictionary = from pair in weightVector.WDictionary
+                                   where Math.Abs(pair.Value) > 2
+                                    orderby Math.Abs(pair.Value) descending 
+                                    select pair;
+
+            foreach (var weight in sortedDictionary)
+            {
+                var feature = DictKToFeatures[weight.Key];
+                newDictFtoK[feature] = k;
+                newDictKtoF[k] = feature;
+                weightDict[k] = weight.Value;
+                k++;
+            }
+            weightVector.WDictionary = weightDict;
+            DictFeaturesToK = weightVector.FeatureKDictionary = newDictFtoK;
+            DictKToFeatures = newDictKtoF;
+        }
+
         public void StartMapping()
         {
             var inputData = new ReadInputData(_inputFile);
@@ -42,6 +68,10 @@ namespace LocationProjectWithFeatureTemplate
 
             }
             inputData.Reset();
+        }
+
+        public void Dump()
+        {
             foreach (var pair in DictFeaturesToK)
             {
                 _writeModel.WriteLine(string.Format("{0}\t{1}", pair.Key, pair.Value));

@@ -35,13 +35,14 @@ namespace LocationProjectWithFeatureTemplate
             foreach (var line in inputData.GetSentence())
             {
                 var inputTags = new List<string>(line.Count);
+                var inputList = new List<string>(line.Count);
                 for (var j = 0; j < line.Count; j++)
                 {
                     var split = line[j].Split(new char[] { ' ' });
-                    line[j] = split[0];
+                    inputList.Add(split[0]);
                     inputTags.Add(split[1]);
                 }
-                InputSentences.Add(line);
+                InputSentences.Add(inputList);
                 TagsList.Add(inputTags);
             }
             inputData.Reset();    
@@ -49,9 +50,9 @@ namespace LocationProjectWithFeatureTemplate
 
         public void Train()
         {
-            for (var i = 0; i < 5; i++)
+            for (var i = 0; i < 1; i++)
             {
-                Console.WriteLine("training iteration: "+ i);
+                Console.WriteLine(DateTime.Now+" training iteration: "+ i);
                 var inputData = new ReadInputData(_inputFile);
                 foreach (var line in inputData.GetSentence())
                 {
@@ -83,17 +84,27 @@ namespace LocationProjectWithFeatureTemplate
 
             //  _weightVector.NormalizeAllWeights(100);
 
-            Console.WriteLine("training is complete");
+            Console.WriteLine(DateTime.Now+" training is complete");
             
+        }
+
+        public void ReMapFeatureToK()
+        {
+            MapFeatures.ReMappingFromWeightVector(WeightVector);
         }
 
         public void Dump()
         {
-            var output = new WriteModel(_outputFile);
-            foreach (var weight in WeightVector.WDictionary)
+            var output = new WriteModel(string.Concat(_outputFile, ".temp"));
+            var sortedDictionary = from pair in WeightVector.WDictionary
+                                   orderby Math.Abs(pair.Value) descending
+                                   select pair;
+            foreach (var weight in sortedDictionary)
             {
-                output.WriteLine(string.Format("{0} {1} {2}", weight.Key,
+                output.WriteLine(string.Format("{0} {1}", 
                     MapFeatures.DictKToFeatures[weight.Key], weight.Value));
+                //output.WriteLine(string.Format("{0} {1} {2}", weight.Key,
+                //    MapFeatures.DictKToFeatures[weight.Key], weight.Value));
             }
             output.Flush();
         }

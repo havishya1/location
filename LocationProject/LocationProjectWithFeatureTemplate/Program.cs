@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -34,11 +35,13 @@ namespace LocationProjectWithFeatureTemplate
             //const string modelFile = "../../data/gene.key.model";
             //const string input = "../../data/gene.key";
 
-            const string modelFile = "../../data/training/tag.model";
+            const string modelFile = "../../data/training/tag.model.trial1";
             const string input = "../../data/training/NYT_19980403_parsed.key";
             var perceptron = new Perceptron(input, modelFile, tags);
             perceptron.Train();
-            //perceptron.Dump();
+            perceptron.ReMapFeatureToK();
+            perceptron.Dump();
+            perceptron.MapFeatures.Dump();
             perceptron.ReadInputs();
             var gradient = new ComputeGradient(perceptron.InputSentences, perceptron.TagsList,
                 tags, .1);
@@ -68,7 +71,7 @@ namespace LocationProjectWithFeatureTemplate
                 string outputFile = inputFile + ".dev.output1";
                 string keyFile = inputFile + ".key";
                 string outputEval = inputFile + ".dev.evalDump";
-                const string modelFile = "../../data/training/tag.model";
+                const string modelFile = "../../data/training/tag.model.10itertation";
 
 
                 var testGLMViterbi = new TestGLMViterbi(modelFile, input, outputFile, tags);
