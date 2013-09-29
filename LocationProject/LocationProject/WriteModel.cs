@@ -1,0 +1,45 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LocationProject
+{
+    class WriteModel
+    {
+        private readonly StreamWriter _writer;
+
+        public WriteModel() : this(null)
+        {
+        }
+
+        public WriteModel(string fileName)
+        {
+            if (fileName == null) throw new ArgumentNullException("fileName");
+            _writer = new StreamWriter(fileName);
+        }
+
+        public void WriteLine(string line)
+        {
+            _writer.WriteLine(line);
+        }
+
+        public void Flush()
+        {
+            _writer.Flush();
+            _writer.Close();
+        }
+
+        public void WriteDataWithTag(List<string> line, List<string> outputTags)
+        {
+            for (int i = 0; i < line.Count; i++)
+            {
+                string dump = line[i] + " " + outputTags[i];
+                WriteLine(dump);
+            }
+            WriteLine("");
+        }
+    }
+}
