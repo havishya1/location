@@ -13,16 +13,18 @@ namespace LocationProjectWithFeatureTemplate
         private readonly List<List<string>> _outputTagsList;
         private readonly List<string> _tagList;
         private readonly double _lambda;
+        private readonly FeatureCache _cache;
         private List<ForwardBackwordAlgo> forwardBackwordAlgos;
         private WeightVector _weightVector;
 
         public ComputeGradient(List<List<string>> inputSentence, List<List<string>> tagsList,
-            List<string> tagList, double lambda)
+            List<string> tagList, double lambda, FeatureCache cache)
         {
             _inputSentence = inputSentence;
             _outputTagsList = tagsList;
             _tagList = tagList;
             _lambda = lambda;
+            _cache = cache;
             forwardBackwordAlgos = new List<ForwardBackwordAlgo>();
             _weightVector = null;
         }
@@ -89,9 +91,9 @@ namespace LocationProjectWithFeatureTemplate
         private double Compute(int k, WeightVector weightVector)
         {
             double output = 0;
-            double secondTerm = 0;
-            int i = 0;
-            var weightedFeaturesum = new WeightedFeatureSum(weightVector, null, true);
+            //double secondTerm = 0;
+            int lineIndex = 0;
+            //var weightedFeaturesum = new WeightedFeatureSum(weightVector, null, true);
 
             if (_inputSentence.Count != _outputTagsList.Count)
             {
@@ -102,14 +104,15 @@ namespace LocationProjectWithFeatureTemplate
             // first term.
             foreach (var sentence in _inputSentence)
             {
-                var outputTags = _outputTagsList[i];
+                var outputTags = _outputTagsList[lineIndex];
 
                 if (sentence.Count != outputTags.Count)
                 {
                     throw new Exception("compute counts dont match " + sentence.Count + "with " + outputTags.Count);
                 }
 
-                output += CalculateGradient(weightedFeaturesum, sentence, outputTags, k, ngramTags, i);
+                output += CalculateGradient(outputTags, k,
+                    ngramTags, lineIndex);
 
                 //output += weightedFeaturesum.GetAllFeatureK(outputTags, k, sentence);
 
@@ -125,26 +128,27 @@ namespace LocationProjectWithFeatureTemplate
                 //    }
                 //    secondTerm += sum;
                 //}
-                i++;
+                lineIndex++;
             }
 
-            output = output - secondTerm - (_lambda*weightVector.Get(k));
+            output = output - (_lambda*weightVector.Get(k));
             return output;
         }
 
-        private double CalculateGradient(WeightedFeatureSum weightedFeatureSum,
-            List<string> sentence, List<string> outputTags,
-            int k, Tags ngramTags, int i)
+        private double CalculateGradient(List<string> outputTags,
+            int k, Tags ngramTags, int lineIndex)
         {
             double output = 0;
             double secondTerm = 0;
-            output += weightedFeatureSum.GetAllFeatureK(outputTags, k, sentence);
+            //output += weightedFeatureSum.GetAllFeatureK(outputTags, k, sentence);
+            output += GetAllFeatureKFromCache(outputTags, k, lineIndex);
+            
 
             // second term.
-            for (var j = 0; j < outputTags.Count; j++)
+            for (var pos = 0; pos < outputTags.Count; pos++)
             {
                 //double sum = 0;
-                secondTerm += GetSecondTerm(sentence, ngramTags, weightedFeatureSum, i, j, k);
+                secondTerm += GetSecondTerm(ngramTags, lineIndex, pos, k);
                 //foreach (var ngramTag in ngramTags.GetNGramTags(2))
                 //{
                 //    string[] split = ngramTag.Split(new[] { ':' });
@@ -156,18 +160,48 @@ namespace LocationProjectWithFeatureTemplate
             return output - secondTerm;
         }
 
-        private double GetSecondTerm(List<string> sentence, Tags ngramTags, 
-            WeightedFeatureSum weightedFeatureSum, int i, int j, int k)
+        private double GetSecondTerm(Tags ngramTags, 
+            int lineIndex, int pos, int k)
         {
             double sum = 0;
             foreach (var ngramTag in ngramTags.GetNGramTags(2))
             {
                 string[] split = ngramTag.Split(new[] { ':' });
-                sum += (forwardBackwordAlgos[i].GetQ(j, split[0], split[1]) *
-                    weightedFeatureSum.GetFeatureK(split[0], split[1], j, k, sentence));
+
+                if (_cache.Contains(split[0], split[1], k, pos, lineIndex))
+                {
+                    sum += (forwardBackwordAlgos[lineIndex].GetQ(pos, split[0], split[1]) *
+                    _weightVector.Get(k));    
+                }
+                //else
+                //{
+                //    sum += (forwardBackwordAlgos[lineIndex].GetQ(j, split[0], split[1]) *
+                //    weightedFeatureSum.GetFeatureK(split[0], split[1], j, k, sentence));
+                //}
+
+            }
+            return sum;
+        }
+
+        public double GetAllFeatureKFromCache(List<string> tags, int k, int lineIndex)
+        {
+            double sum = 0;
+            for (var pos = 0; pos < tags.Count; pos++)
+            {
+                var prevTag = "*";
+                if (pos > 0)
+                {
+                    prevTag = tags[pos - 1];
+                }
+                if (_cache.Contains(prevTag, tags[pos], k, pos, lineIndex))
+                {
+                    sum += Math.Exp(_weightVector.Get(k));
+                }
             }
             return sum;
         }
     }
+
+    
 }
 

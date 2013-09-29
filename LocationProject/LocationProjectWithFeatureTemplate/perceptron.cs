@@ -22,7 +22,7 @@ namespace LocationProjectWithFeatureTemplate
             var tags = new Tags(tagList);
             MapFeatures = new MapFeaturesToK(inputFile, string.Concat(outputFile, ".featuresToK"), tagList);
             MapFeatures.StartMapping();
-            WeightVector = new WeightVector(MapFeatures.DictFeaturesToK);
+            WeightVector = new WeightVector(MapFeatures.DictFeaturesToK, MapFeatures.FeatureCount);
             _viterbiForGlobalLinearModel = new ViterbiForGlobalLinearModel(WeightVector, tags);
             InputSentences = new List<List<string>>();
             TagsList = new List<List<string>>();

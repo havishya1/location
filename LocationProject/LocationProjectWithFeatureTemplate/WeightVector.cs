@@ -1,33 +1,42 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace LocationProjectWithFeatureTemplate
 {
-    class WeightVector
+    public class WeightVector
     {
         public Dictionary<int, double> WDictionary;
         public Dictionary<string, int> FeatureKDictionary;
+        public double[] WeightArray;
 
         public WeightVector()
         {
             WDictionary = new Dictionary<int, double>();
             FeatureKDictionary = new Dictionary<string, int>();
-            
+            WeightArray = new double[40000];
+            FeatureCount = 0;
             throw new Exception("did you forget ???");
         }
 
-        public WeightVector(Dictionary<string, int> inputFeatureTemp)
+        public WeightVector(Dictionary<string, int> inputFeatureTemp, int count)
         {
             WDictionary = new Dictionary<int, double>();
             FeatureKDictionary = inputFeatureTemp;
+            WeightArray = new double[count+1000];
+            WeightArray.Initialize();
+            FeatureCount = count;
         }
-        
+
+        public int FeatureCount { get; set; }
+
         public void Add(KeyValuePair<string, string> input)
         {
             if (FeatureKDictionary.ContainsKey(input.Key))
             {
                 var k = FeatureKDictionary[input.Key];
                 WDictionary.Add(k, double.Parse(input.Value));
+
             }
         }
 

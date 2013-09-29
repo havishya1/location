@@ -119,8 +119,9 @@ namespace LocationProjectWithFeatureTemplate
             {
                 if (DictFeaturesToK.ContainsKey(feature))
                     continue;
-                DictFeaturesToK.Add(feature, FeatureCount++);
-                DictKToFeatures.Add(FeatureCount-1, feature);
+                DictFeaturesToK.Add(feature, FeatureCount);
+                DictKToFeatures.Add(FeatureCount, feature);
+                FeatureCount++;
             }
         }
 

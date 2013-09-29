@@ -43,8 +43,11 @@ namespace LocationProjectWithFeatureTemplate
             perceptron.Dump();
             perceptron.MapFeatures.Dump();
             perceptron.ReadInputs();
+            var featureCache = new FeatureCache(perceptron.InputSentences, tags,
+                perceptron.MapFeatures.DictFeaturesToK);
+            featureCache.CreateCache();
             var gradient = new ComputeGradient(perceptron.InputSentences, perceptron.TagsList,
-                tags, .1);
+                tags, .1, featureCache);
             gradient.RunIterations(perceptron.WeightVector, 10);
             gradient.Dump(modelFile, perceptron.MapFeatures.DictKToFeatures);
         }
