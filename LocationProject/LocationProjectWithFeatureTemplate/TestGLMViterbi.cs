@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace LocationProjectWithFeatureTemplate
 {
@@ -23,7 +24,8 @@ namespace LocationProjectWithFeatureTemplate
         public void Setup(bool debug)
         {
             var readModel = new ReadModel(InputModelFile);
-            _weightVector = new WeightVector();
+            var temp = new ReadModel(string.Concat(InputModelFile, ".featuresToK"));
+            _weightVector = new WeightVector(temp.GetFeatureToKdDictionary());
 
             foreach (var pair in readModel.ModelIterator())
             {

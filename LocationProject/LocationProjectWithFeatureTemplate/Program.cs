@@ -38,6 +38,12 @@ namespace LocationProjectWithFeatureTemplate
             const string input = "../../data/training/NYT_19980403_parsed.key";
             var perceptron = new Perceptron(input, modelFile, tags);
             perceptron.Train();
+            //perceptron.Dump();
+            perceptron.ReadInputs();
+            var gradient = new ComputeGradient(perceptron.InputSentences, perceptron.TagsList,
+                tags, .1);
+            gradient.RunIterations(perceptron.WeightVector, 10);
+            gradient.Dump(modelFile, perceptron.MapFeatures.DictKToFeatures);
         }
 
         static void Test1(List<string> tags, bool debug, bool eval)
@@ -46,21 +52,36 @@ namespace LocationProjectWithFeatureTemplate
             //const string outputFile = "../../data/gene_dev.output3";
             //const string modelFile = "../../data/gene.key.model";
 
-            const string input = "../../data/training/NYT_19980403_parsed.key.dev";
-            const string outputFile = "../../data/training/NYT_19980403.parsed_output1";
-            const string modelFile = "../../data/training/tag.model";
-            const string keyFile = "../../data/training/NYT_19980403_parsed.key";
-            const string outputEval = "../../data/training/NYT_19980403_parsed.evalDump";
+            var inputFiles = new[]
+                                 {
+                                     "../../data/training/NYT_19980403_parsed",
+                                     "../../data/training/APW_19980314_parsed",
+                                     "../../data/training/APW_19980424_parsed",
+                                     "../../data/training/APW_19980429_parsed",
+                                     "../../data/training/NYT_19980315_parsed",
+                                     "../../data/training/NYT_19980407_parsed"
+                                 };
 
-            var testGLMViterbi = new TestGLMViterbi(modelFile, input, outputFile, tags);
-            testGLMViterbi.Setup(debug);
-
-            if (eval)
+            foreach (var inputFile in inputFiles)
             {
-                var dump = EvaluateModel(keyFile, outputFile, outputEval);
-                Console.WriteLine(dump);
-                Console.ReadLine();
+                string input = inputFile + ".key.dev";
+                string outputFile = inputFile + ".dev.output1";
+                string keyFile = inputFile + ".key";
+                string outputEval = inputFile + ".dev.evalDump";
+                const string modelFile = "../../data/training/tag.model";
+
+
+                var testGLMViterbi = new TestGLMViterbi(modelFile, input, outputFile, tags);
+                testGLMViterbi.Setup(debug);
+
+                if (eval)
+                {
+                    var dump = EvaluateModel(keyFile, outputFile, outputEval);
+                    Console.WriteLine(dump);
+                    Console.ReadLine();
+                }    
             }
+            
         }
 
         private static void ReadNewsWireData()

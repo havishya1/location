@@ -69,9 +69,9 @@ namespace LocationProjectWithFeatureTemplate
             {
                 switch (feature)
                 {   
-                    case FeatureEnums.TRIGRAMTags:
-                        yield return GetTriGramFeature();
-                        break;
+                    //case FeatureEnums.TRIGRAMTags:
+                    //    yield return GetTriGramFeature();
+                    //    break;
                     case FeatureEnums.BiWordTag:
                         if (Pos < Sentence.Count)
                         {
@@ -202,10 +202,10 @@ namespace LocationProjectWithFeatureTemplate
             }
         }
 
-        private string GetTriGramFeature()
-        {
-            return "TRIGRAMTAG:" + T2 +":"+ T1 +":"+ T;
-        }
+        //private string GetTriGramFeature()
+        //{
+        //    return "TRIGRAMTAG:" + T2 +":"+ T1 +":"+ T;
+        //}
 
         private string GetTagFeature()
         {

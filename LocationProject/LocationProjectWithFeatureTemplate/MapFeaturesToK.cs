@@ -10,20 +10,19 @@ namespace LocationProjectWithFeatureTemplate
         private readonly List<string> _tagList;
         public Dictionary<string, int> DictFeaturesToK;
         public Dictionary<int, string> DictKToFeatures;
-        private readonly StreamReader _reader;
-        public int _featureCount;
-        private WriteModel writeModel;
-        private Tags _tags;
+        public int FeatureCount;
+        private readonly WriteModel _writeModel;
+        private readonly Tags _tags;
 
         public MapFeaturesToK(string inputFile, string outputFile, List<string> tagList)
         {
-            writeModel = new WriteModel(outputFile);
+            _writeModel = new WriteModel(outputFile);
 
             _inputFile = inputFile;
             _tagList = tagList;
             DictFeaturesToK = new Dictionary<string, int>();
             DictKToFeatures = new Dictionary<int, string>();
-            _featureCount = 0;
+            FeatureCount = 0;
             _tags = new Tags(tagList);
         }
 
@@ -45,9 +44,9 @@ namespace LocationProjectWithFeatureTemplate
             inputData.Reset();
             foreach (var pair in DictFeaturesToK)
             {
-                writeModel.WriteLine(string.Format("{0}\t{1}", pair.Key, pair.Value));
+                _writeModel.WriteLine(string.Format("{0}\t{1}", pair.Key, pair.Value));
             }
-            writeModel.Flush();
+            _writeModel.Flush();
         }
 
         private void GenerateMappingForSentence(List<string> inputSentance)
@@ -74,15 +73,13 @@ namespace LocationProjectWithFeatureTemplate
                         newTemp = "*:" + newTemp;
                         GenerateFeatures(newTemp, inputSentance, k);
                     }
-
                 }
             }
-            
         }
 
         private void GenerateFeatures(string temp, List<string> inputSentance, int pos)
         {
-            string[] tags = temp.Split(new char[] { ':' });
+            var tags = temp.Split(new char[] { ':' });
             if (tags.Length != 3)
             {
                 throw new Exception(temp + " doesn't contain 3 tags");
@@ -92,8 +89,8 @@ namespace LocationProjectWithFeatureTemplate
             {
                 if (DictFeaturesToK.ContainsKey(feature))
                     continue;
-                DictFeaturesToK.Add(feature, _featureCount++);
-                DictKToFeatures.Add(_featureCount-1, feature);
+                DictFeaturesToK.Add(feature, FeatureCount++);
+                DictKToFeatures.Add(FeatureCount-1, feature);
             }
         }
 

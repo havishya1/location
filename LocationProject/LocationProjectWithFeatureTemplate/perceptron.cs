@@ -8,18 +8,43 @@ namespace LocationProjectWithFeatureTemplate
     {
         private readonly string _inputFile;
         private readonly string _outputFile;
-        private readonly WeightVector _weightVector;
+        public readonly WeightVector WeightVector;
         private readonly ViterbiForGlobalLinearModel _viterbiForGlobalLinearModel;
-        private MapFeaturesToK _mapFeatures;
+        public MapFeaturesToK MapFeatures;
+
+        public List<List<string>> InputSentences;
+        public List<List<string>> TagsList;
+
         public Perceptron(string inputFile, string outputFile, List<string> tagList)
         {
             _inputFile = inputFile;
             _outputFile = outputFile;
             var tags = new Tags(tagList);
-            _mapFeatures = new MapFeaturesToK(inputFile, string.Concat(outputFile, ".featuresToK"), tagList);
-            _mapFeatures.StartMapping();
-            _weightVector = new WeightVector(_mapFeatures.DictFeaturesToK);
-            _viterbiForGlobalLinearModel = new ViterbiForGlobalLinearModel(_weightVector, tags);
+            MapFeatures = new MapFeaturesToK(inputFile, string.Concat(outputFile, ".featuresToK"), tagList);
+            MapFeatures.StartMapping();
+            WeightVector = new WeightVector(MapFeatures.DictFeaturesToK);
+            _viterbiForGlobalLinearModel = new ViterbiForGlobalLinearModel(WeightVector, tags);
+            InputSentences = new List<List<string>>();
+            TagsList = new List<List<string>>();
+            ReadInputs();
+        }
+
+        public void ReadInputs()
+        {
+            var inputData = new ReadInputData(_inputFile);
+            foreach (var line in inputData.GetSentence())
+            {
+                var inputTags = new List<string>(line.Count);
+                for (var j = 0; j < line.Count; j++)
+                {
+                    var split = line[j].Split(new char[] { ' ' });
+                    line[j] = split[0];
+                    inputTags.Add(split[1]);
+                }
+                InputSentences.Add(line);
+                TagsList.Add(inputTags);
+            }
+            inputData.Reset();    
         }
 
         public void Train()
@@ -46,9 +71,9 @@ namespace LocationProjectWithFeatureTemplate
                     {
                         if (inputFeature.Current.Key.Equals(outputFeature.Current.Key))
                             continue;
-                        _weightVector.AddToKey(inputFeature.Current.Value,
+                        WeightVector.AddToKey(inputFeature.Current.Value,
                             1 * Features.GetWeight(inputFeature.Current.Value));
-                        _weightVector.AddToKey(outputFeature.Current.Value,
+                        WeightVector.AddToKey(outputFeature.Current.Value,
                             -1 * Features.GetWeight(inputFeature.Current.Value));
                     }
                 }
@@ -59,11 +84,16 @@ namespace LocationProjectWithFeatureTemplate
             //  _weightVector.NormalizeAllWeights(100);
 
             Console.WriteLine("training is complete");
+            
+        }
+
+        public void Dump()
+        {
             var output = new WriteModel(_outputFile);
-            foreach (var weight in _weightVector.WDictionary)
+            foreach (var weight in WeightVector.WDictionary)
             {
                 output.WriteLine(string.Format("{0} {1} {2}", weight.Key,
-                    _mapFeatures.DictKToFeatures[weight.Key], weight.Value));
+                    MapFeatures.DictKToFeatures[weight.Key], weight.Value));
             }
             output.Flush();
         }

@@ -5,19 +5,19 @@ namespace LocationProjectWithFeatureTemplate
 {
     class WeightVector
     {
-        public readonly Dictionary<int, float> WDictionary;
+        public readonly Dictionary<int, double> WDictionary;
         public Dictionary<string, int> FeatureKDictionary;
 
         public WeightVector()
         {
-            WDictionary = new Dictionary<int, float>();
+            WDictionary = new Dictionary<int, double>();
             FeatureKDictionary = new Dictionary<string, int>();
             throw new Exception("did you forget ???");
         }
 
         public WeightVector(Dictionary<string, int> inputFeatureTemp)
         {
-            WDictionary = new Dictionary<int, float>();
+            WDictionary = new Dictionary<int, double>();
             FeatureKDictionary = inputFeatureTemp;
         }
         
@@ -30,22 +30,19 @@ namespace LocationProjectWithFeatureTemplate
             }
         }
 
-        public float Get(string tag)
+        public int GetFeatureToK(string feature)
         {
-            if (FeatureKDictionary.ContainsKey(tag))
-            {
-                return Get(FeatureKDictionary[tag]);
-            }
-            return 0;
+            return FeatureKDictionary.ContainsKey(feature) ? FeatureKDictionary[feature] : -1;
         }
 
-        public float Get(int k)
+        public double Get(string tag)
         {
-            if (WDictionary.ContainsKey(k))
-            {
-                return WDictionary[k];
-            }
-            return 0;
+            return FeatureKDictionary.ContainsKey(tag) ? Get(FeatureKDictionary[tag]) : 0;
+        }
+
+        public double Get(int k)
+        {
+            return WDictionary.ContainsKey(k) ? WDictionary[k] : 0;
         }
 
         public void AddToKey(string key, float value)
@@ -65,7 +62,14 @@ namespace LocationProjectWithFeatureTemplate
             WDictionary[key] += value;
         }
 
-
+        public void SetKey(int key, double value)
+        {
+            if (!WDictionary.ContainsKey(key))
+            {
+                WDictionary.Add(key, 0);
+            }
+            WDictionary[key] = value;            
+        }
 
         //private float Abs(float value)
         //{

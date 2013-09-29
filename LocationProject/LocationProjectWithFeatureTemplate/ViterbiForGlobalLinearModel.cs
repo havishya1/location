@@ -8,14 +8,14 @@ namespace LocationProjectWithFeatureTemplate
     {
         public WeightVector WeightVector { get; set; }
         public Tags Tags { get; set; }
-        public List<Dictionary<string, float>> Pi { get; set; }
+        public List<Dictionary<string, double>> Pi { get; set; }
         public List<Dictionary<string, string>> Bp { get; set; }
 
         public ViterbiForGlobalLinearModel(WeightVector weightVector, Tags tags)
         {
             WeightVector = weightVector;
             Tags = tags;
-            Pi = new List<Dictionary<string, float>>();
+            Pi = new List<Dictionary<string, double>>();
             Bp = new List<Dictionary<string, string>>();
         }
 
@@ -23,24 +23,24 @@ namespace LocationProjectWithFeatureTemplate
         {
             var outputTags = new string[(inputSentance.Count)];
             var weightedFeatureSum  = new WeightedFeatureSum(WeightVector, inputSentance);
-            var init = new Dictionary<string, float> {{"*:*", 0}};
+            var init = new Dictionary<string, double> {{"*:*", 0}};
             Pi.Add(init);
             var lastTwo = string.Empty;
-            float lastTwoTagsValue = -0xFFFF;
+            double lastTwoTagsValue = -0xFFFF;
             int k;
 
             debugList = new List<string>(inputSentance.Count);
 
             for (k = 0; k < inputSentance.Count; k++ )
             {
-                float max = - 0xFFFF;
-                Pi.Add(new Dictionary<string, float>());
+                double max = - 0xFFFF;
+                Pi.Add(new Dictionary<string, double>());
                 Bp.Add(new Dictionary<string, string>());
                 foreach (var tagStr in Tags.GetNGramTags(k == 0 ? 1 : 2))
                 {
                     // follow algo from notes;
                     var tagsKey = tagStr;
-                    float current;
+                    double current;
                     if (k > 1)
                     {
                         var split = tagStr.Split(new char[] {':'});
@@ -49,7 +49,7 @@ namespace LocationProjectWithFeatureTemplate
                             string debugStr;
                             var  newTemp = t+ ":"+ tagsKey;
                             Initialize(k - 1, t + ":" + split[0]);
-                            var newWeight = weightedFeatureSum.GetFeatureValue(newTemp, k, debug, out debugStr);
+                            double newWeight = weightedFeatureSum.GetFeatureValue(newTemp, k, debug, out debugStr);
                             current = Pi[k - 1][t + ":" + split[0]] + newWeight;
                             if (current > max)
                             {
