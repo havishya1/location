@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -22,7 +23,7 @@ namespace LocationProject
             Bp = new List<Dictionary<string, string>>();
         }
 
-        public List<string> Decode(List<string> inputSentance)
+        public List<string> Decode(List<string> inputSentance, bool debug, out List<string> debugList)
         {
             var outputTags = new string[(inputSentance.Count)];
             var weightedFeatureSum  = new WeightedFeatureSum(WeightVector, inputSentance);
@@ -31,7 +32,9 @@ namespace LocationProject
             var lastTwo = string.Empty;
             float lastTwoTagsValue = -0xFFFF;
             int k;
-            
+
+            debugList = new List<string>(inputSentance.Count);
+
             for (k = 0; k < inputSentance.Count; k++ )
             {
                 float max = - 0xFFFF;
@@ -47,15 +50,20 @@ namespace LocationProject
                         var split = tagStr.Split(new char[] {':'});
                         foreach (var t in Tags.GetNGramTags(1))
                         {
+                            string debugStr;
                             var  newTemp = t+ ":"+ tagsKey;
                             Initialize(k - 1, t + ":" + split[0]);
-                            var newWeight = weightedFeatureSum.GetFeatureValue(newTemp, k);
+                            var newWeight = weightedFeatureSum.GetFeatureValue(newTemp, k, debug, out debugStr);
                             current = Pi[k - 1][t + ":" + split[0]] + newWeight;
                             if (current > max)
                             {
                                 max = current;
                                 outputTags[k] = split[1];
-                            }
+                                if (debug)
+                                {
+                                    debugList.Insert(k, debugStr);
+                                }
+                            }   
                             Initialize(k, tagsKey);
                             if (!(current > Pi[k][tagsKey])) continue;
                             Pi[k][tagsKey] = current;
@@ -70,7 +78,8 @@ namespace LocationProject
                         }
                         var split = tagsKey.Split(new char[]{':'});
                         var newTemp = "*:" + tagsKey;
-                        current = weightedFeatureSum.GetFeatureValue(newTemp, k);
+                        string debugStr;
+                        current = weightedFeatureSum.GetFeatureValue(newTemp, k, debug, out debugStr);
                         Initialize(k, tagsKey);
                         if (current > Pi[k][tagsKey])
                         {
@@ -81,6 +90,8 @@ namespace LocationProject
                         {
                             max = current;
                             outputTags[k] = split[1];
+                            if (debug)
+                                debugList.Insert(k, debugStr);
                         }
                     }
                     if (k != inputSentance.Count - 1) continue;
@@ -98,7 +109,8 @@ namespace LocationProject
             {
                 throw new Exception("count mismatch for lastTwo tags"+ lastTwo);
             }
-            outputTags[n-1] = lastTwoSplit[0];
+            if (n-1 >= 0)
+                outputTags[n-1] = lastTwoSplit[0];
             outputTags[n] = lastTwoSplit[1];
 
             //for (k = n - 2; k >= 0; k--)

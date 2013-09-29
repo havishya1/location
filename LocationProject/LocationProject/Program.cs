@@ -11,31 +11,70 @@ namespace LocationProject
     {
         static void Main(string[] args)
         {
-            TrainingTest();
-            Test1();
+            var tags = new List<string> { "I-LOCATION", "O" };
+            //ReadNewsWireData();
+            TrainingTest(tags);
+            Test1(tags, false);
 
             //const string modelFile = "../../data/tag.model";
             //const string input = "../../data/gene.test";
             //const string outputFile = "../../data/gene_test.p2.out";
 
         }
+        
 
-        static void TrainingTest()
+        static void TrainingTest(List<string> tags)
         {
-            const string modelFile = "../../data/gene.key.model";
-            const string input = "../../data/gene.key";
-            var perceptron = new Perceptron(input, modelFile);
+            //const string modelFile = "../../data/gene.key.model";
+            //const string input = "../../data/gene.key";
+
+            const string modelFile = "../../data/training/tag.model";
+            const string input = "../../data/training/NYT_19980403_parsed.key";
+            var perceptron = new Perceptron(input, modelFile, tags);
             perceptron.Train();
         }
 
-        static void Test1()
+        static void Test1(List<string> tags, bool debug)
         {
-            const string input = "../../data/gene.dev";
-            const string outputFile = "../../data/gene_dev.output3";
-            const string modelFile = "../../data/gene.key.model";
+            //const string input = "../../data/gene.dev";
+            //const string outputFile = "../../data/gene_dev.output3";
+            //const string modelFile = "../../data/gene.key.model";
 
-            var testGLMViterbi = new TestGLMViterbi(modelFile, input, outputFile);
-            testGLMViterbi.Setup();
+            const string input = "../../data/training/NYT_19980403_parsed.key.dev";
+            const string outputFile = "../../data/training/NYT_19980403.parsed_output1";
+            const string modelFile = "../../data/training/tag.model";
+
+            var testGLMViterbi = new TestGLMViterbi(modelFile, input, outputFile, tags);
+            testGLMViterbi.Setup(debug);
+        }
+
+        private static void ReadNewsWireData()
+        {
+            string[] input =
+            {
+                "../../data/training/APW_19980314",
+                "../../data/training/APW_19980424",
+                "../../data/training/APW_19980429",
+                "../../data/training/NYT_19980315",
+                "../../data/training/NYT_19980403",
+                "../../data/training/NYT_19980407"
+            };
+            string[] output =
+            {
+                "../../data/training/APW_19980314_parsed.key",
+                "../../data/training/APW_19980424_parsed.key",
+                "../../data/training/APW_19980429_parsed.key",
+                "../../data/training/NYT_19980315_parsed.key",
+                "../../data/training/NYT_19980403_parsed.key",
+                "../../data/training/NYT_19980407_parsed.key"
+            };
+            //const string input = "../../data/training/APW_19980314";
+            //const string output = "../../data/training/APW_19980314.parsed_key";
+            for (int i = 0; i < input.Length; i++)
+            {
+                var parseNEWSWIRE = new ParseNEWSWIRETrainingData();
+                parseNEWSWIRE.Parse(input[i], output[i]);
+            }
         }
 
 /*

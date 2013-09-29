@@ -26,6 +26,7 @@ namespace LocationProject
                 line = line.Trim();
                 if (string.IsNullOrEmpty(line))
                 {
+                    //sentence[sentence.Count -1]
                     yield return sentence;
                     sentence.Clear();
                 }

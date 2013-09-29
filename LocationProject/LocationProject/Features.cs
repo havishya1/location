@@ -34,7 +34,8 @@ namespace LocationProject
            StartsWithNum,
            AllNumTag,
            ContainsSymbolsTag,
-           FirstStringTag
+           FirstStringTag,
+           PrevWordCurrentTag,
         }
 
         public Features(string t2, string t1, string t, List<string> sentence, int pos)
@@ -48,8 +49,8 @@ namespace LocationProject
             {
                 //FeatureEnums.TRIGRAMTags,
                 FeatureEnums.BiWordTag,
-                FeatureEnums.CurWordPrevTag,
-                FeatureEnums.BiGram,
+                //FeatureEnums.CurWordPrevTag,
+                //FeatureEnums.BiGram,
                 FeatureEnums.Suff2Tag,
                 FeatureEnums.Suff3Tag,
                 FeatureEnums.SingleCharTag,
@@ -59,7 +60,8 @@ namespace LocationProject
                 FeatureEnums.StartsWithNum,
                 FeatureEnums.AllNumTag,
                 FeatureEnums.ContainsSymbolsTag,
-                FeatureEnums.FirstStringTag
+                FeatureEnums.FirstStringTag,
+                FeatureEnums.PrevWordCurrentTag
             };
         }
 
@@ -173,6 +175,16 @@ namespace LocationProject
                     case FeatureEnums.StartsWithNum:
                     {
                         string tag = GetStartWithNum();
+                        if (!string.IsNullOrEmpty(tag))
+                        {
+                            yield return tag;
+                        }
+                        break;
+                    }
+
+                    case FeatureEnums.PrevWordCurrentTag:
+                    {
+                        string tag = GetPrevWordCurrentTag();
                         if (!string.IsNullOrEmpty(tag))
                         {
                             yield return tag;
@@ -321,6 +333,15 @@ namespace LocationProject
                 return "ANYSYMBOLTAG:1:" + T;
             }
             return "ANYSYMBOLTAG:0:" + T;
+        }
+
+        private string GetPrevWordCurrentTag()
+        {
+            if (Pos > 1)
+            {
+                return "PREVWORDCURRTAG:" + Sentence[Pos - 1] + ":" + T;
+            }
+            return null;
         }
 
         public string GetFirstStringTag()

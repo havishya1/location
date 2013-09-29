@@ -15,18 +15,18 @@ namespace LocationProject
         private readonly WeightVector _weightVector;
         private readonly ViterbiForGlobalLinearModel _viterbiForGlobalLinearModel;
 
-        public Perceptron(string inputFile, string outputFile)
+        public Perceptron(string inputFile, string outputFile, List<string> tagList)
         {
             _inputFile = inputFile;
             _outputFile = outputFile;
-            Tags tags = new Tags(new List<string> { "I-GENE", "O" });
+            var tags = new Tags(tagList);
             _weightVector = new WeightVector();
             _viterbiForGlobalLinearModel = new ViterbiForGlobalLinearModel(_weightVector, tags);
         }
 
         public void Train()
         {
-            for (var i = 0; i < 10; i++)
+            for (var i = 0; i < 5; i++)
             {
                 Console.WriteLine("training iteration: "+ i);
                 var inputData = new ReadInputData(_inputFile);
@@ -39,7 +39,8 @@ namespace LocationProject
                         line[j] = split[0];
                         inputTags.Add(split[1]);
                     }
-                    var outputTags = _viterbiForGlobalLinearModel.Decode(line);
+                    List<string> temp;
+                    var outputTags = _viterbiForGlobalLinearModel.Decode(line, false, out temp);
                     if (Match(inputTags, outputTags)) continue;
                     var inputFeature = (new FeatureWrapper(inputTags, line)).NextFeature().GetEnumerator();
                     var outputFeature= new FeatureWrapper(outputTags, line).NextFeature().GetEnumerator();

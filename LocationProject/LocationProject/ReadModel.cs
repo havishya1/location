@@ -9,27 +9,35 @@ namespace LocationProject
 {
     class ReadModel
     {
-        private readonly string _fileName;
-
+        readonly StreamReader _stream;
         public ReadModel(string file)
         {
-            _fileName = file;
+            string fileName = file;
+
+            try
+            {
+                _stream = new StreamReader(fileName);
+            }
+            catch (Exception)
+            {
+                Console.WriteLine(fileName + "is not valid");
+                throw;
+            }
+        }
+
+        public IEnumerable<string> GetNextLine()
+        {
+            string line;
+            while ((line = _stream.ReadLine()) != null)
+            {
+                yield return line.Trim();
+            }
         }
 
         public IEnumerable<KeyValuePair<string, string>> ModelIterator()
         {
-            StreamReader stream;
-            try
-            {
-                stream = new StreamReader(_fileName);
-            }
-            catch (Exception)
-            {
-                Console.WriteLine(_fileName + "is not valid");
-                throw;
-            }
             string line;
-            while ((line = stream.ReadLine()) != null)
+            while ((line = _stream.ReadLine()) != null)
             {
                 string[] str = line.Split(new[]{' '});
                 if (str.Length != 2)

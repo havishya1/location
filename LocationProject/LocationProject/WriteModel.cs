@@ -41,5 +41,15 @@ namespace LocationProject
             }
             WriteLine("");
         }
+
+        public void WriteDataWithTagDebug(List<string> line, List<string> outputTags, List<string> debugList)
+        {
+            for (int i = 0; i < line.Count; i++)
+            {
+                string dump = line[i] + " " + outputTags[i] +" "+ debugList[i];
+                WriteLine(dump);
+            }
+            WriteLine("");
+        }
     }
 }
