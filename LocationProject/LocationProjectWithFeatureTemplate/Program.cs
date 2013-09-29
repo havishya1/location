@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LocationProjectWithFeatureTemplate;
 
-namespace LocationProject
+namespace LocationProjectWithFeatureTemplate
 {
     class Program
     {
@@ -13,8 +13,8 @@ namespace LocationProject
         {
             var tags = new List<string> { "LOCATION", "OTHER" };
             //ReadNewsWireData();
-            //TrainingTest(tags);
-            Test1(tags, false, true);
+            TrainingTest(tags);
+            //Test1(tags, false, true);
 
             //const string modelFile = "../../data/tag.model";
             //const string input = "../../data/gene.test";
@@ -92,27 +92,27 @@ namespace LocationProject
             }
         }
 
-/*
-        static void Test()
-        {
-            const string inputFile = "../../data/tag.model";
-            //const string outputFile = "../../test.output1";
-            var readModel = new ReadModel(inputFile);
-            //var writeModel = new WriteModel(outputFile);
-            var weightVector = new WeightVector();
-            var tags = new List<string> {"I-GENE", "O"};
+        /*
+                static void Test()
+                {
+                    const string inputFile = "../../data/tag.model";
+                    //const string outputFile = "../../test.output1";
+                    var readModel = new ReadModel(inputFile);
+                    //var writeModel = new WriteModel(outputFile);
+                    var weightVector = new WeightVector();
+                    var tags = new List<string> {"I-GENE", "O"};
 
-            PrintFeatureList(tags);
+                    PrintFeatureList(tags);
 
-            foreach (var pair in readModel.ModelIterator())
-            {
-                weightVector.Add(pair);
+                    foreach (var pair in readModel.ModelIterator())
+                    {
+                        weightVector.Add(pair);
                 
-            }
-            //writeModel.WriteLine(line);
-            //writeModel.Flush();
-        }
-*/
+                    }
+                    //writeModel.WriteLine(line);
+                    //writeModel.Flush();
+                }
+        */
 
         static void PrintFeatureList(List<string> tags)
         {
